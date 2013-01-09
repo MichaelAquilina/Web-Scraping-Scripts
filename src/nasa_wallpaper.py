@@ -11,7 +11,12 @@ from HTMLParser import HTMLParser
 WEBSITE_URL = 'http://apod.nasa.gov/apod'
 
 def get_data(html_node):
-    data = extract_data(html_node)
+    """
+    Retrieves and extracts the string data contained in the
+    HTML node passed in the parameter. The process is recursive
+    so the entire string data will be returned.
+    """
+    data = _extract_data(html_node)
     
     str_buffer = ''
     for item in data:
@@ -19,20 +24,20 @@ def get_data(html_node):
         
     return str_buffer
 
-def extract_data(html_node, data=[]):
+def _extract_data(html_node, data=[]):
     for child in html_node.children:
         if type(child) == str:
             data.append(child.replace('\n',' ').strip())
         else:
             data.append(' ')
-            extract_data(child, data)
+            _extract_data(child, data)
             
     return data
 
 class HTMLNode(object):
     """
     Class representation of an HTML Node that would be found in a
-    typical html file.
+    typical HTML file.
     """
     
     def __init__(self, tag, pos=-1):
@@ -50,8 +55,9 @@ class HTMLNode(object):
 
 class MemHTMLParser(HTMLParser):
     """
-    Builds an in-memory representation of a given html file through the use of
+    Builds an in-memory representation of a given HTML file through the use of
     HTMLNode objects that are easily accessible through the nodes instance variable.
+    The structure built by this class assumes XML compliance (TODO: allow non-XML)
     """
     
     def __init__(self):
@@ -76,12 +82,14 @@ class MemHTMLParser(HTMLParser):
             parent.children.append(node)
             node.parent = parent
             
+        # Push the new node on the top of the stack for tracking
         self._node_stack.append(node)
     
     def handle_data(self, data):
         self._peek_stack().children.append(data)
     
     def handle_endtag(self, tag):
+        # The node is no longer in context
         self._node_stack.pop()
 
 if __name__ == '__main__':
