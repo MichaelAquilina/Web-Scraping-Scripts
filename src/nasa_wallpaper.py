@@ -10,6 +10,25 @@ from HTMLParser import HTMLParser
 
 WEBSITE_URL = 'http://apod.nasa.gov/apod'
 
+def get_data(html_node):
+    data = extract_data(html_node)
+    
+    buffer = ''
+    for item in data:
+        buffer += item
+        
+    return buffer
+
+def extract_data(html_node, data=[]):
+    for child in html_node.children:
+        if type(child) == str:
+            data.append(child.replace('\n',' ').strip())
+        else:
+            data.append(' ')
+            extract_data(child, data)
+            
+    return data
+
 class HTMLNode(object):
     """
     Class representation of an HTML Node that would be found in a
@@ -21,7 +40,6 @@ class HTMLNode(object):
         self.children = []
         self.attributes = {}
         self.parent = None
-        self.data = None
         self.pos = pos
         
     def __repr__(self):
@@ -57,11 +75,9 @@ class MemHTMLParser(HTMLParser):
             parent = self._peek_stack()
             parent.children.append(node)
             node.parent = parent
-        
-        self._node_stack.append(node)
     
     def handle_data(self, data):
-        self._peek_stack().data = data
+        self._peek_stack().children.append(data)
     
     def handle_endtag(self, tag):
         self._node_stack.pop()
@@ -84,6 +100,16 @@ if __name__ == '__main__':
     parser = MemHTMLParser()
     parser.feed(html_data)
     
+    expl_list = [node for node in parser.nodes['b'] if ' Explanation: ' in node.children]
+    
+    if expl_list:
+        save_location_info = target_date.strftime('%d%m%y.txt')
+        
+        print 'Saving POD Information to %s' % save_location_info
+        info_file = open(save_location_info,'w')
+        info_file.write(get_data(expl_list[0].parent))
+        info_file.close()
+    
     if 'img' in parser.nodes:
         image = parser.nodes['img'][0]
         
@@ -91,13 +117,13 @@ if __name__ == '__main__':
         image_url = '%s/%s' % (WEBSITE_URL, image.parent.attributes['href'])
         print 'downloading %s' % image_url
         
-        save_location = target_date.strftime('%d%m%y.jpg')
+        save_location_img = target_date.strftime('%d%m%y.jpg')
         
         request = urllib2.urlopen(image_url)
-        image_file = open(save_location,'wb')
+        image_file = open(save_location_img,'wb')
         image_file.write(request.read())
         image_file.close()
         
-        print 'Successfully downloaded the Picture of the Day to %s' % save_location
+        print 'Successfully downloaded the Picture of the Day to %s' % save_location_img
     else:
         print 'There was an error locating the background image to download'
