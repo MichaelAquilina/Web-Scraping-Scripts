@@ -25,7 +25,7 @@ def get_data(html_node):
     for item in data:
         str_buffer += item
         
-    return str_buffer
+    return str_buffer.lstrip()
 
 def _extract_data(html_node, data=[]):
     for child in html_node.children:
