@@ -3,6 +3,9 @@ Created on Jan 9, 2013
 
 @author: Mike
 '''
+
+#POD = Picture of the Day
+
 import sys
 import urllib2
 from datetime import datetime
@@ -27,10 +30,15 @@ def get_data(html_node):
 def _extract_data(html_node, data=[]):
     for child in html_node.children:
         if type(child) == str:
-            data.append(child.replace('\n',' ').strip())
+            data.append(child
+                        .replace('\n',' ')      # Remove all occurrances of new lines
+                        .strip()                # Remove white spaces at the end
+                        .lstrip()               # Remove white spaces at the front
+                        )
         else:
             data.append(' ')
             _extract_data(child, data)
+            data.append(' ')
             
     return data
 
@@ -113,6 +121,7 @@ if __name__ == '__main__':
         
             i = i + 1
         
+    # If a target date hasn't been specified, assign a default one
     if target_date is None:
         target_date = datetime.now()
     
@@ -123,27 +132,24 @@ if __name__ == '__main__':
     url = urllib2.urlopen(target_url)
     html_data = url.read()
      
-    print 'parsing html information'
+    print 'parsing HTML information'
     parser = MemHTMLParser()
     parser.feed(html_data)
     
+    # Try find the Explanation node in order to display to the user
     expl_list = [node for node in parser.nodes['b'] if ' Explanation: ' in node.children]
     
     if expl_list:
-        save_location_info = target_date.strftime('%d%m%y.txt')
-        
-        print 'Saving POD Information to %s' % save_location_info
-        info_file = open(save_location_info,'w')
-        info_file.write(get_data(expl_list[0].parent))
-        info_file.close()
+        print get_data(expl_list[0].parent)
     
     if 'img' in parser.nodes:
         image = parser.nodes['img'][0]
-
+        
+        # If a save location hasn't been specified, assign a default one
         if save_location_img is None:
             save_location_img = target_date.strftime('%d%m%y.jpg')
         
-        # Get the High Resolution URL
+        # Get the High Resolution Image URL
         image_url = '%s/%s' % (WEBSITE_URL, image.parent.attributes['href'])
         request = urllib2.urlopen(image_url)
         
