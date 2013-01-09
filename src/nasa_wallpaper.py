@@ -13,11 +13,11 @@ WEBSITE_URL = 'http://apod.nasa.gov/apod'
 def get_data(html_node):
     data = extract_data(html_node)
     
-    buffer = ''
+    str_buffer = ''
     for item in data:
-        buffer += item
+        str_buffer += item
         
-    return buffer
+    return str_buffer
 
 def extract_data(html_node, data=[]):
     for child in html_node.children:
@@ -75,6 +75,8 @@ class MemHTMLParser(HTMLParser):
             parent = self._peek_stack()
             parent.children.append(node)
             node.parent = parent
+            
+        self._node_stack.append(node)
     
     def handle_data(self, data):
         self._peek_stack().children.append(data)
@@ -83,10 +85,27 @@ class MemHTMLParser(HTMLParser):
         self._node_stack.pop()
 
 if __name__ == '__main__':
+    save_location_img = None
+    save_location_info = None
+    target_date = None
+    
     if len(sys.argv) > 1:
-        # Allow user to specify the date of the pod to download
-        target_date = datetime.strptime(sys.argv[1], '%d/%m/%y') 
-    else:
+        # Parse any arguments passed
+        i = 1
+        while i < len(sys.argv):
+            
+            if sys.argv[i] == '--date':
+                # Allow user to specify the date of the pod to download
+                i = i + 1
+                target_date = datetime.strptime(sys.argv[i], '%d/%m/%y')
+            if sys.argv[i] == '--file':
+                # Allow the user to specify the file to save to
+                i = i + 1
+                save_location_img = sys.argv[i]
+        
+            i = i + 1
+        
+    if target_date is None:
         target_date = datetime.now()
     
     print 'target date = %s' % target_date
@@ -117,7 +136,8 @@ if __name__ == '__main__':
         image_url = '%s/%s' % (WEBSITE_URL, image.parent.attributes['href'])
         print 'downloading %s' % image_url
         
-        save_location_img = target_date.strftime('%d%m%y.jpg')
+        if save_location_img is None:
+            save_location_img = target_date.strftime('%d%m%y.jpg')
         
         request = urllib2.urlopen(image_url)
         image_file = open(save_location_img,'wb')
