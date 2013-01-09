@@ -131,15 +131,16 @@ if __name__ == '__main__':
     
     if 'img' in parser.nodes:
         image = parser.nodes['img'][0]
-        
-        # Get the High Resolution URL
-        image_url = '%s/%s' % (WEBSITE_URL, image.parent.attributes['href'])
-        print 'downloading %s' % image_url
-        
+
         if save_location_img is None:
             save_location_img = target_date.strftime('%d%m%y.jpg')
         
+        # Get the High Resolution URL
+        image_url = '%s/%s' % (WEBSITE_URL, image.parent.attributes['href'])
         request = urllib2.urlopen(image_url)
+        
+        print 'downloading %s (%s bytes)' % (image_url, request.headers['Content-Length'])
+        
         image_file = open(save_location_img,'wb')
         image_file.write(request.read())
         image_file.close()
