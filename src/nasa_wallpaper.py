@@ -1,86 +1,87 @@
-'''
-Created on Jan 9, 2013
+"""
+Simple Python Script that provides a command line interface for downloading NASA's Picture of the Day (POD).
+"""
 
-@author: Mike
-'''
+__author__ = 'Michael Aquilina'
 
-#POD = Picture of the Day
-
-import sys
-import urllib2
-from datetime import datetime
 from MemHTMLParser import MemHTMLParser
+from datetime import datetime
+import urllib2
+import argparse
+import random
+import sys
+
+MAX = 3000
+MAX_ATTEMPTS = 10
 
 WEBSITE_URL = 'http://apod.nasa.gov/apod'
 
 if __name__ == '__main__':
-    save_location_folder = None
-    target_date = None
+    parser = argparse.ArgumentParser("Download NASAs Astronomy Pictures of the Day over command line")
+    parser.add_argument('-f', '--file', type=str, required=True, help="Specify the filename to save to")
+    parser.add_argument('-c', '--date', type=datetime, required=False, help="Specify a specific day to download an image")
+    parser.add_argument('-r', '--random', action="store_true", required=False, help="Download a random comic from XKCD")
+    parser.add_argument('-i', '--info', type=str, required=False, help="Save the information text to a user-specified text file")
     
-    if len(sys.argv) > 1:
-        # Parse any arguments passed
-        i = 1
-        while i < len(sys.argv):
-            
-            if sys.argv[i] == '--date':
-                # Allow user to specify the date of the pod to download
-                i = i + 1
-                target_date = datetime.strptime(sys.argv[i], '%d/%m/%y')
-            if sys.argv[i] == '--folder':
-                # Allow the user to specify the folder to save to
-                i = i + 1
-                save_location_folder = sys.argv[i]
-        
-            i = i + 1
-        
-    # If a target date hasn't been specified, assign a default one
-    if target_date is None:
-        target_date = datetime.now()
-
-    filename = target_date.strftime('%d%m%y')
-
-    # If a save location hasn't been specified, assign a default one
-    if save_location_folder is None:
-        save_location_img = filename + '.jpg'
-        save_location_info = filename + '.txt'
-    else:
-        save_location_img = '%s/%s.jpg' % (save_location_folder, filename)
-        save_location_info = '%s/%s.txt' % (save_location_folder, filename)
+    args = parser.parse_args()
     
-    print 'target date = %s' % target_date
-    target_url = '%s/ap%s.html' % (WEBSITE_URL, target_date.strftime('%y%m%d'))
+    retry = True
+    attempts = 0
+    
+    while retry and attempts < MAX_ATTEMPTS:
+        try:
+            retry = False
+        
+            if args.date:
+                dateid = datetime.strptime(args.date, '%d/%m/%y')
+                target_url = '%s%s' % (WEBSITE_URL, dateid.strftime('%y%m%d'))
+            elif args.random:
+                random_id = random.randint(1,MAX)
+                target_url = '%s%s' % (WEBSITE_URL, random_id)
+            else:
+                target_url = WEBSITE_URL
+                
+            save_location_img = args.file
+        
+            print 'requesting %s' % target_url
+            url = urllib2.urlopen(target_url)
+        except urllib2.URLError:
+            retry = True
+            attempts += 1
+    
+    # Unable to download HTML file; print error and exit
+    if attempts == MAX_ATTEMPTS:
+        print 'Unable to download POD from NASA'
+        sys.exit()
 
-    # BEGIN HTML REQUESTS AND IMAGE DOWNLOADING
-
-    print 'requesting %s' % target_url
-    url = urllib2.urlopen(target_url)
-    html_data = url.read()
-     
     print 'parsing HTML information'
     parser = MemHTMLParser()
-    parser.feed(html_data)
-    
-    # Try find the Explanation node in order to display to the user
-    expl_list = [node for node in parser.nodes['b'] if ' Explanation: ' in node.children]
-    
-    if expl_list:
-        info_file = open(save_location_info, 'w')
-        info_file.write(expl_list[0].parent.get_data())
-        info_file.close()
-    
+    parser.feed(url.read())
+
+    # Traverse the HTML in an EXPECTED format
     if 'img' in parser.nodes:
-        image = parser.nodes['img'][0]
+
+        # Get the Image URL
+        anchor_tag = parser.nodes['img'][0].parent
+        img_url = '%s/%s' % (WEBSITE_URL, anchor_tag.attributes['href'])
         
-        # Get the High Resolution Image URL
-        image_url = '%s/%s' % (WEBSITE_URL, image.parent.attributes['href'])
-        request = urllib2.urlopen(image_url)
-        
-        print 'downloading %s (%s bytes)' % (image_url, request.headers['Content-Length'])
-        
+        request = urllib2.urlopen(img_url)
+
+        print 'downloading %s (%s bytes)' % (img_url, request.headers['Content-Length'])
+
         image_file = open(save_location_img,'wb')
         image_file.write(request.read())
         image_file.close()
         
-        print 'Successfully downloaded the Picture of the Day to %s' % save_location_img
+        if args.info:
+            # Try find the Explanation node in order to display to the user
+            expl_list = [node for node in parser.nodes['b'] if ' Explanation: ' in node.children]
+            
+            if expl_list:
+                info_file = open(args.info, 'w')
+                info_file.write(expl_list[0].parent.get_data())
+                info_file.close()
+
+        print 'Successfully downloaded and saved the NASA POD to %s' % save_location_img
     else:
-        print 'There was an error locating the background image to download'
+        print 'There was an error locating the image to download (Unexpected format)'
