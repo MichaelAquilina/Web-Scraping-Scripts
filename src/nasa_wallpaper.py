@@ -5,7 +5,7 @@ Simple Python Script that provides a command line interface for downloading NASA
 __author__ = 'Michael Aquilina'
 
 from MemHTMLParser import MemHTMLParser
-from datetime import datetime
+from datetime import datetime, timedelta
 import urllib2
 import argparse
 import random
@@ -13,6 +13,7 @@ import sys
 
 MAX = 3000
 MAX_ATTEMPTS = 10
+START_DATE = datetime(2000, 01, 01)
 
 WEBSITE_URL = 'http://apod.nasa.gov/apod'
 
@@ -36,8 +37,12 @@ if __name__ == '__main__':
                 dateid = datetime.strptime(args.date, '%d/%m/%y')
                 target_url = '%s/ap%s.html' % (WEBSITE_URL, dateid.strftime('%y%m%d'))
             elif args.random:
-                random_id = random.randint(1,MAX)
-                target_url = '%s/ap%s.html' % (WEBSITE_URL, random_id)
+                time_delta = datetime.now() - START_DATE
+                print time_delta.days
+                time_add = random.randint(0, time_delta.days)
+                result_date = START_DATE + timedelta(days=time_add)
+                
+                target_url = '%s/ap%s.html' % (WEBSITE_URL, result_date.strftime('%y%m%d'))
             else:
                 target_url = WEBSITE_URL
                 
