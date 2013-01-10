@@ -101,8 +101,7 @@ class MemHTMLParser(HTMLParser):
         self._node_stack.pop()
 
 if __name__ == '__main__':
-    save_location_img = None
-    save_location_info = None
+    save_location_folder = None
     target_date = None
     
     if len(sys.argv) > 1:
@@ -114,20 +113,32 @@ if __name__ == '__main__':
                 # Allow user to specify the date of the pod to download
                 i = i + 1
                 target_date = datetime.strptime(sys.argv[i], '%d/%m/%y')
-            if sys.argv[i] == '--file':
-                # Allow the user to specify the file to save to
+            if sys.argv[i] == '--folder':
+                # Allow the user to specify the folder to save to
                 i = i + 1
-                save_location_img = sys.argv[i]
+                save_location_folder = sys.argv[i]
         
             i = i + 1
         
     # If a target date hasn't been specified, assign a default one
     if target_date is None:
         target_date = datetime.now()
+
+    filename = target_date.strftime('%d%m%y')
+
+    # If a save location hasn't been specified, assign a default one
+    if save_location_folder is None:
+        save_location_img = filename + '.jpg'
+        save_location_info = filename + '.txt'
+    else:
+        save_location_img = '%s/%s.jpg' % (save_location_folder, filename)
+        save_location_info = '%s/%s.txt' % (save_location_folder, filename)
     
     print 'target date = %s' % target_date
     target_url = '%s/ap%s.html' % (WEBSITE_URL, target_date.strftime('%y%m%d'))
-    
+
+    # BEGIN HTML REQUESTS AND IMAGE DOWNLOADING
+
     print 'requesting %s' % target_url
     url = urllib2.urlopen(target_url)
     html_data = url.read()
@@ -140,14 +151,12 @@ if __name__ == '__main__':
     expl_list = [node for node in parser.nodes['b'] if ' Explanation: ' in node.children]
     
     if expl_list:
-        print get_data(expl_list[0].parent)
+        info_file = open(save_location_info, 'w')
+        info_file.write(get_data(expl_list[0].parent))
+        info_file.close()
     
     if 'img' in parser.nodes:
         image = parser.nodes['img'][0]
-        
-        # If a save location hasn't been specified, assign a default one
-        if save_location_img is None:
-            save_location_img = target_date.strftime('%d%m%y.jpg')
         
         # Get the High Resolution Image URL
         image_url = '%s/%s' % (WEBSITE_URL, image.parent.attributes['href'])
