@@ -20,7 +20,7 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--file', type=str, required=True, help="Specify the filename to save to")
     parser.add_argument('-c', '--comic-id', type=int, required=False, help="Specify a specific comic to download by id")
     parser.add_argument('-r', '--random', action="store_true", required=False, help="Download a random comic from XKCD")
-    parser.add_argument('-i', '--info', type=str, required=False, help="Save the alternate text to a user-specified text file")
+    parser.add_argument('-i', '--info', type=str, required=False, help="Save the comic text to a user-specified text file")
     
     args = parser.parse_args()
     
