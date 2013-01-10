@@ -1,4 +1,8 @@
-__author__ = 'michaela'
+"""
+Simple Python Script that provides a command line interface for downloading XKCD Comics.
+"""
+
+__author__ = 'michael aquilina'
 
 from MemHTMLParser import MemHTMLParser
 import urllib2
@@ -45,7 +49,7 @@ if __name__ == '__main__':
     
     # Unable to download HTML file; print error and exit
     if attempts == MAX_ATTEMPTS:
-        print 'Unable to download comic of the day from XKCD'
+        print 'Unable to download comic from XKCD'
         sys.exit()
 
     print 'parsing HTML information'
@@ -79,6 +83,6 @@ if __name__ == '__main__':
                 info_file.write(info)
                 info_file.close()
 
-            print 'Successfully downloaded and saved the Picture of the Day to %s' % save_location_img
+            print 'Successfully downloaded and saved the XKCD Comic to %s' % save_location_img
     else:
         print 'There was an error locating the image to download (Unexpected format)'
