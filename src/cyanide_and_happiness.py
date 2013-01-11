@@ -1,5 +1,5 @@
 """
-Simple Python Script that provides a command line interface for downloading XKCD Comics.
+Simple Python Script that provides a command line interface for downloading Cyanide and Happiness Comics.
 """
 
 __author__ = 'michael aquilina'
