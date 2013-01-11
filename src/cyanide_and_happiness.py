@@ -2,7 +2,7 @@
 Simple Python Script that provides a command line interface for downloading Cyanide and Happiness Comics.
 """
 
-__author__ = 'michael aquilina'
+__author__ = 'Michael Aquilina'
 
 from MemHTMLParser import MemHTMLParser
 import urllib2
@@ -17,10 +17,10 @@ COMIC_ALT = 'Cyanide and Happiness, a daily webcomic'
 WEBSITE_URL = 'http://www.explosm.net/comics/'
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser("Download XKCD Comics over command line")
+    parser = argparse.ArgumentParser("Download Cyanide and Happiness Comics over command line")
     parser.add_argument('-f', '--file', type=str, required=True, help="Specify the filename to save to")
     parser.add_argument('-c', '--comic-id', type=int, required=False, help="Specify a specific comic to download by id")
-    parser.add_argument('-r', '--random', action="store_true", required=False, help="Download a random comic from XKCD")
+    parser.add_argument('-r', '--random', action="store_true", required=False, help="Download a random comic from Cyanide and Happiness")
     # parser.add_argument('-i', '--info', type=str, required=False, help="Save the comic text to a user-specified text file")
     
     args = parser.parse_args()
@@ -74,6 +74,6 @@ if __name__ == '__main__':
             image_file.write(request.read())
             image_file.close()
 
-            print 'Successfully downloaded and saved the XKCD Comic to %s' % save_location_img
+            print 'Successfully downloaded and saved the Cyanide and Happiness Comic to %s' % save_location_img
     else:
         print 'There was an error locating the image to download (Unexpected format)'
