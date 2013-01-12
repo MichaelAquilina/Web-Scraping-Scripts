@@ -25,21 +25,24 @@ class HTMLNode(object):
         for item in data:
             str_buffer += item
 
-        return str_buffer.lstrip()
+        return str_buffer
 
     def _extract_data(self, data=[]):
+        """
+        Recursive function that traverses all child nodes in a Depth-First
+        manner in order to retrieve all the content found in the the html tags.
+        Uses the 'data' list parameter as a buffer for storing found content.
+        """
         for child in self.children:
             if type(child) == str:
-                data.append(child
-                .replace('\n',' ')      # Remove all occurrances of new lines
-                .strip()                # Remove white spaces at the end
-                .lstrip()               # Remove white spaces at the front
-                )
+                lines = child.split('\n')
+                for line in lines:
+                    fmt_line = line
+                    if fmt_line:
+                        data.append(fmt_line)      
             else:
-                data.append(' ')
                 child._extract_data(data)
-                data.append(' ')
-
+                
         return data
         
     def __repr__(self):
@@ -85,10 +88,10 @@ class MemHTMLParser(HTMLParser):
     
     def handle_data(self, data):
         topnode = self._peek_stack()
-        fmt_data = data.replace('\n','')
 
-        if topnode and fmt_data:
-            topnode.children.append(fmt_data)
+        # Only add the data if it has actual content other than only whitespace
+        if topnode and data.strip():
+            topnode.children.append(data)
     
     def handle_endtag(self, tag):
         # The node is no longer in context
