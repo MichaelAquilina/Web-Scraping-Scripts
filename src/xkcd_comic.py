@@ -2,7 +2,7 @@
 Simple Python Script that provides a command line interface for downloading XKCD Comics.
 """
 
-__author__ = 'michael aquilina'
+__author__ = 'Michael Aquilina'
 
 from MemHTMLParser import MemHTMLParser
 import urllib2
