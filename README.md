@@ -13,4 +13,4 @@ The following scripts can be found in the src folder:
 * NASA Picture of the Day Image Downloader
 
 NOTE: It has been suggested by various members of the reddit community that i could have also implemented
-these scripts usingthe beautiful soup library (http://www.crummy.com/software/BeautifulSoup/). Thanks!
+these scripts using the beautiful soup library (http://www.crummy.com/software/BeautifulSoup/). Thanks!
